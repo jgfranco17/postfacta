@@ -11,6 +11,7 @@
 # Environments
 .env
 .envrc
+*venv/
 
 # Output of the go coverage tool
 *.out
