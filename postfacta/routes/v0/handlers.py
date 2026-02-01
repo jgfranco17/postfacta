@@ -15,7 +15,7 @@ incidents_router = APIRouter(prefix="/incidents", tags=["INCIDENTS"])
 async def create_incident(incident_request: NewIncidentRequest):
     """Create a new incident."""
     new_incident = create_new_incident(incident_request)
-    logger.info(f"Created new incident: {new_incident.id}")
+    logger.info(f"New incident reported by {new_incident.reporter}: {new_incident.id}")
     return {"message": "Incident created", "id": new_incident.id}
 
 

@@ -5,7 +5,7 @@ _default:
 # Launch API in debug mode
 start:
 	@echo "Running main app..."
-	@python3 app.py --port 8080 --debug
+	@uv run uvicorn postfacta.service:app --port 8000 --reload
 
 # Clean unused files
 clean:

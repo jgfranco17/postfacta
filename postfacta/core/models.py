@@ -40,6 +40,14 @@ class NewIncidentRequest(BaseModel):
 
 
 def create_new_incident(incident_request: NewIncidentRequest) -> Incident:
+    """Create a new incident from a request object.
+
+    Args:
+        incident_request (NewIncidentRequest): Request body details
+
+    Returns:
+        Incident: The newly created incident instance
+    """
     new_id = f"postfacta-inc-{uuid4()}"
     timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
     return Incident(
