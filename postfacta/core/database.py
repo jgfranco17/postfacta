@@ -28,6 +28,11 @@ class DataClient(ABC):
         raise NotImplementedError("Client needs implementation of this method")
 
     @abstractmethod
+    def update_entry(self, incident: Incident) -> None:
+        """Update an existing incident entry in the database."""
+        raise NotImplementedError("Client needs implementation of this method")
+
+    @abstractmethod
     def get_by_id(self, incident_id: str) -> Optional[Incident]:
         """Execute a query against the database."""
         raise NotImplementedError("Client needs implementation of this method")
@@ -61,6 +66,12 @@ class InMemoryClient(DataClient):
         """Register the client with the database system."""
         new_db_entry = {incident.id: incident}
         self._storage.update(new_db_entry)
+
+    def update_entry(self, incident: Incident) -> None:
+        """Update an existing incident entry in the database."""
+        if incident.id not in self._storage:
+            raise IncidentNotFoundError(incident.id)
+        self._storage[incident.id] = incident
 
     def get_by_id(self, incident_id: str) -> Optional[Incident]:
         """Simulate executing a query against the in-memory database."""
