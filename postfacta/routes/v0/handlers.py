@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from postfacta.core.database import get_database_client
 from postfacta.core.models import NewIncidentRequest, create_new_incident
-from postfacta.core.errors import ErrorResponse
+from postfacta.core.errors import ErrorResponse, IncidentNotFoundError
 
 
 logger = logging.getLogger(__name__)
@@ -49,6 +49,27 @@ async def create_incident(incident_request: NewIncidentRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             text="Invalid incident data provided.",
             additional_info=str(ve)
+        )
+        raise error_response.as_http_exception()
+
+
+@incidents_router.get("/{incident_id}", status_code=status.HTTP_200_OK)
+async def get_incident_by_id(incident_id: str):
+    """Retrieve a single incident by its ID."""
+    client = get_database_client()
+    try:
+        incident = client.get_by_id(incident_id)
+        if incident is None:
+            raise IncidentNotFoundError(incident_id)
+
+        logger.info(f"Incident ID {incident_id} retrieved successfully")
+        return incident
+
+    except IncidentNotFoundError as infe:
+        logger.error(str(infe))
+        error_response = ErrorResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            text=str(infe)
         )
         raise error_response.as_http_exception()
 
