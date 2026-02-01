@@ -8,9 +8,16 @@
 *.so
 *.dylib
 
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.python-version
+
 # Environments
 .env
 .envrc
+*venv/
 
 # Output of the go coverage tool
 *.out
