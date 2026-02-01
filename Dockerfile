@@ -30,6 +30,7 @@ FROM build AS service
 USER appuser
 
 COPY ./postfacta /app/postfacta
+COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
 
 EXPOSE 8000
 
