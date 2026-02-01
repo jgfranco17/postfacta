@@ -15,9 +15,9 @@ router_v0 = APIRouter(prefix="/v0", tags=["V0"])
 incidents_router = APIRouter(prefix="/incidents", tags=["INCIDENTS"])
 
 
-@incidents_router.post("/", status_code=status.HTTP_201_CREATED)
+@incidents_router.get("", status_code=status.HTTP_200_OK)
 async def get_all_incidents():
-    """Create a new incident."""
+    """Retrieve all incidents."""
     client = get_database_client()
     try:
         all_incidents = client.get_all()

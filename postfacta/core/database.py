@@ -71,6 +71,9 @@ class InMemoryClient(DataClient):
         return self._storage
 
 
+_db_singleton = InMemoryClient()
+
+
 def get_database_client() -> DataClient:
     """Exposed factory function to get the appropriate database client."""
-    return InMemoryClient()
+    return _db_singleton
