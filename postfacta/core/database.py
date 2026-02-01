@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from postfacta.core.models import Incident
+from postfacta.core.errors import IncidentNotFoundError
 
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,11 @@ class DataClient(ABC):
         """Execute a query against the database."""
         raise NotImplementedError("Client needs implementation of this method")
 
+    @abstractmethod
+    def remove_by_id(self, incident_id: str) -> None:
+        """Remove an incident from the database by its ID."""
+        raise NotImplementedError("Client needs implementation of this method")
+
 
 class InMemoryClient(DataClient):
     """In-memory database client implementation."""
@@ -55,20 +61,23 @@ class InMemoryClient(DataClient):
         """Register the client with the database system."""
         new_db_entry = {incident.id: incident}
         self._storage.update(new_db_entry)
-        logging.info(f"Incident {incident.id} registered in database")
 
     def get_by_id(self, incident_id: str) -> Optional[Incident]:
         """Simulate executing a query against the in-memory database."""
         incident_by_id = self._storage.get(incident_id)
         if incident_by_id is None:
-            logging.warning(f"Incident {incident_id} not found in database")
-        else:
-            logging.info(f"Found incident {incident_id} in database")
+            raise IncidentNotFoundError(incident_id)
         return incident_by_id
 
     def get_all(self) -> dict[str, Incident]:
         """Simulate executing a query against the in-memory database."""
         return self._storage
+
+    def remove_by_id(self, incident_id: str) -> None:
+        """Remove an incident from the database by its ID."""
+        if incident_id not in self._storage:
+            raise IncidentNotFoundError(incident_id)
+        del self._storage[incident_id]
 
 
 _db_singleton = InMemoryClient()

@@ -59,10 +59,26 @@ async def get_incident_by_id(incident_id: str):
     client = get_database_client()
     try:
         incident = client.get_by_id(incident_id)
-        if incident is None:
-            raise IncidentNotFoundError(incident_id)
-
         logger.info(f"Incident ID {incident_id} retrieved successfully")
+        return incident
+
+    except IncidentNotFoundError as infe:
+        logger.error(str(infe))
+        error_response = ErrorResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            text=str(infe)
+        )
+        raise error_response.as_http_exception()
+
+
+@incidents_router.delete("/{incident_id}", status_code=status.HTTP_200_OK)
+async def delete_incident_by_id(incident_id: str):
+    """Delete a single incident by its ID."""
+    client = get_database_client()
+    try:
+        incident = client.get_by_id(incident_id)
+        client.remove_by_id(incident_id)
+        logger.info(f"Incident ID {incident_id} deleted successfully")
         return incident
 
     except IncidentNotFoundError as infe:
