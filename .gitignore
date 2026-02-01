@@ -1,0 +1,23 @@
+# mkdocs documentation
+/site
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Environments
+.env
+.envrc
+
+# Output of the go coverage tool
+*.out
+
+# IDE
+.idea/
+.vscode/
+
+# Terraform
+**/.terraform**

@@ -1,0 +1,8 @@
+{
+  "author": "Joaquin Gabriel Franco",
+  "version": "0.0.0",
+  "repository": "https://github.com/jgfranco17/postfacta",
+  "license": "BSD-3-Clause",
+  "language": ["python"],
+  "active": true
+}
