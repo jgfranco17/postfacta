@@ -30,7 +30,17 @@ pytest *args:
 	@echo "Running unittest suite..."
 	@uv run pytest {{ args }}
 
+# Run integration tests
+integration-pytest *args:
+	#!/usr/bin/env bash
+	echo "Running integration test suite..."
+	RUN_INTEGRATION="true" uv run pytest -m integration {{ args }}
+
 # Run test coverage
 coverage:
     @uv run coverage run -m pytest
     @uv run coverage report
+
+# Run UV Python
+python *args:
+    @uv run python {{ args }}

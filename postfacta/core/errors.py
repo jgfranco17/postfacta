@@ -26,3 +26,18 @@ class ErrorResponse:
             HTTPException: Raisable HTTP exception with details
         """
         return HTTPException(status_code=self.status_code, detail=self.json())
+
+
+class PostFactaDatabaseError(Exception):
+    """Base class for PostFacta database errors."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+
+class IncidentNotFoundError(PostFactaDatabaseError):
+    """Raised when an incident is not found in the database."""
+
+    def __init__(self, incident_id: str) -> None:
+        message = f"Incident with ID {incident_id} not found."
+        super().__init__(message)
