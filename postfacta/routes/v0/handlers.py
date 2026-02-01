@@ -20,38 +20,18 @@ incidents_router = APIRouter(prefix="/incidents", tags=["INCIDENTS"])
 async def get_all_incidents():
     """Retrieve all incidents."""
     client = get_database_client()
-    try:
-        all_incidents = client.get_all()
-        return {"incidents": all_incidents}
-
-    except ValidationError as ve:
-        logger.error(f"Error creating incident: {ve}")
-        error_response = ErrorResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            text="Invalid incident data provided.",
-            additional_info=str(ve)
-        )
-        raise error_response.as_http_exception()
+    all_incidents = client.get_all()
+    return {"incidents": all_incidents}
 
 
 @incidents_router.post("/start", status_code=status.HTTP_201_CREATED)
 async def create_incident(incident_request: NewIncidentRequest):
     """Create a new incident."""
     client = get_database_client()
-    try:
-        new_incident = create_new_incident(incident_request)
-        client.register(new_incident)
-        logger.info(f"New incident reported by {new_incident.reporter}: {new_incident.id}")
-        return {"message": "Incident created", "id": new_incident.id}
-
-    except ValidationError as ve:
-        logger.error(f"Error creating incident: {ve}")
-        error_response = ErrorResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            text="Invalid incident data provided.",
-            additional_info=str(ve)
-        )
-        raise error_response.as_http_exception()
+    new_incident = create_new_incident(incident_request)
+    client.register(new_incident)
+    logger.info(f"New incident reported by {new_incident.reporter}: {new_incident.id}")
+    return {"message": "Incident created", "id": new_incident.id}
 
 
 @incidents_router.get("/{incident_id}", status_code=status.HTTP_200_OK)
@@ -96,12 +76,10 @@ async def get_incident_reports(incident_id: str) -> list[Note]:
     client = get_database_client()
     try:
         incident = client.get_by_id(incident_id)
-        assert incident is not None
         logger.info(f"Incident ID {incident_id} reports retrieved successfully")
         return incident.get_notes()
 
     except IncidentNotFoundError as infe:
-        logger.error(str(infe))
         error_response = ErrorResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             text=str(infe)
@@ -115,13 +93,10 @@ async def add_incident_notes(incident_id: str, notes: list[str]) -> None:
     client = get_database_client()
     try:
         incident = client.get_by_id(incident_id)
-        assert incident is not None
-
         for note_message in notes:
             timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
             note = Note(timestamp=timestamp, message=note_message)
             incident.add_note(note)
-
         client.update_entry(incident)
         logger.info(f"Note added to Incident ID {incident_id} successfully")
 

@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from postfacta.core.models import Incident
 from postfacta.core.errors import IncidentNotFoundError
@@ -24,7 +23,7 @@ class DataClient(ABC):
 
     @abstractmethod
     def register(self, incident: Incident) -> None:
-        """Register the client with the database system."""
+        """Register a new incident in the database system."""
         raise NotImplementedError("Client needs implementation of this method")
 
     @abstractmethod
@@ -33,13 +32,13 @@ class DataClient(ABC):
         raise NotImplementedError("Client needs implementation of this method")
 
     @abstractmethod
-    def get_by_id(self, incident_id: str) -> Optional[Incident]:
-        """Execute a query against the database."""
+    def get_by_id(self, incident_id: str) -> Incident:
+        """Retrieve an incident by its ID."""
         raise NotImplementedError("Client needs implementation of this method")
 
     @abstractmethod
     def get_all(self) -> dict[str, Incident]:
-        """Execute a query against the database."""
+        """Retrieve all incidents from the database."""
         raise NotImplementedError("Client needs implementation of this method")
 
     @abstractmethod
@@ -73,15 +72,15 @@ class InMemoryClient(DataClient):
             raise IncidentNotFoundError(incident.id)
         self._storage[incident.id] = incident
 
-    def get_by_id(self, incident_id: str) -> Optional[Incident]:
-        """Simulate executing a query against the in-memory database."""
+    def get_by_id(self, incident_id: str) -> Incident:
+        """Retrieve an incident by its ID."""
         incident_by_id = self._storage.get(incident_id)
         if incident_by_id is None:
             raise IncidentNotFoundError(incident_id)
         return incident_by_id
 
     def get_all(self) -> dict[str, Incident]:
-        """Simulate executing a query against the in-memory database."""
+        """Retrieve all incidents from the database."""
         return self._storage
 
     def remove_by_id(self, incident_id: str) -> None:

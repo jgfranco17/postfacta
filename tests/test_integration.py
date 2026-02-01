@@ -30,7 +30,7 @@ def test_integration_health(live_client: Session, server_url: str) -> None:
 @integration_test("INT-HEALTH")
 @pytest.mark.integration
 def test_integration_create_incident(live_client: Session, server_url: str) -> None:
-    """Test that the health endpoint is reachable and returns a successful status."""
+    """Test that an incident can be created and that the returned ID has the expected format."""
     request_payload = {
         "title": "Integration Test Incident",
         "description": "This is a test incident created during integration testing.",
