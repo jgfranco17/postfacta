@@ -1,4 +1,4 @@
-name: Pre-commit
+name: Compliance Checks
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
 
 jobs:
   pre-commit:
+    name: Run pre-commit
     runs-on: ubuntu-latest
 
     steps:
