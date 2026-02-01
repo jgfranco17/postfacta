@@ -89,7 +89,7 @@ async def get_incident_reports(incident_id: str) -> list[Note]:
 
 @incidents_router.patch("/{incident_id}/reports", status_code=status.HTTP_204_NO_CONTENT)
 async def add_incident_notes(incident_id: str, notes: list[str]) -> None:
-    """Retrieve the report of a single incident by its ID."""
+    """Add one or more notes to an incident's report by its ID."""
     client = get_database_client()
     try:
         incident = client.get_by_id(incident_id)

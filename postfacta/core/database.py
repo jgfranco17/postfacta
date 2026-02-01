@@ -62,7 +62,7 @@ class InMemoryClient(DataClient):
         logging.info("Disconnected from in-memory database")
 
     def register(self, incident: Incident) -> None:
-        """Register the client with the database system."""
+        """Register a new incident in the database system."""
         new_db_entry = {incident.id: incident}
         self._storage.update(new_db_entry)
 
