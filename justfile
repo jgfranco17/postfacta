@@ -28,7 +28,7 @@ clean:
 # Run unit tests
 pytest *args:
 	@echo "Running unittest suite..."
-	uv run pytest {{ args }}
+	@uv run pytest {{ args }}
 
 # Run test coverage
 coverage:
