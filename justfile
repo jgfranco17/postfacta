@@ -40,3 +40,7 @@ integration-pytest *args:
 coverage:
     @uv run coverage run -m pytest
     @uv run coverage report
+
+# Run UV Python
+python *args:
+    @uv run python {{ args }}
