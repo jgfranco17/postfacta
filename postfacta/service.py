@@ -51,10 +51,8 @@ def service_info() -> Dict[str, object]:
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """General exception handler."""
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"status": exc.status_code, "message": exc.detail},
-    )
+    err_message = f"{request.method} {request.url.path} {exc.status_code}"
+    return JSONResponse(status_code=exc.status_code, content={"message": exc.detail, "error": err_message})
 
 
 api_base = APIRouter(prefix="/api")

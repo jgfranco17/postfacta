@@ -1,6 +1,6 @@
 # List out available commands
 _default:
-	@just --list
+	@just --list --unsorted
 
 # Launch API in debug mode
 start:
