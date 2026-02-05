@@ -21,8 +21,6 @@ clean:
 	-@rm -rf *.egg-info
 	-@rm -rf htmlcov
 	-@rm -rf .tox/
-	-@rm -rf docs/_build
-	-@rm -rf .venv
 	@echo "Cleaned out unused files and directories!"
 
 # Run unit tests
@@ -44,3 +42,13 @@ coverage:
 # Run UV Python
 python *args:
     @uv run python {{ args }}
+
+# Tidy and lint code
+lint:
+    @echo "Running code formatter (black)..."
+    @uv run black .
+    @echo "Running linter (flake8)..."
+    @uv run flake8 .
+    @echo "Running type checker (mypy)..."
+    @uv run mypy .
+    @echo "Code checking complete!"

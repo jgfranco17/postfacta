@@ -5,7 +5,6 @@ from typing import Final
 from faker import Faker
 from requests import Session
 
-
 DEFAULT_SERVER_URL: Final[str] = "http://localhost:8000"
 MOCK_DATA_COUNT: Final[int] = 10
 

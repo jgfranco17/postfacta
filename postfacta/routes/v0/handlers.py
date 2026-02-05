@@ -1,13 +1,11 @@
-import logging
 import datetime as dt
+import logging
 
 from fastapi import APIRouter, status
-from pydantic import ValidationError
 
 from postfacta.core.database import get_database_client
-from postfacta.core.models import NewIncidentRequest, Note, create_new_incident
 from postfacta.core.errors import ErrorResponse, IncidentNotFoundError
-
+from postfacta.core.models import NewIncidentRequest, Note, create_new_incident
 
 logger = logging.getLogger(__name__)
 router_v0 = APIRouter(prefix="/v0", tags=["V0"])
@@ -45,10 +43,7 @@ async def get_incident_by_id(incident_id: str):
 
     except IncidentNotFoundError as infe:
         logger.error(str(infe))
-        error_response = ErrorResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            text=str(infe)
-        )
+        error_response = ErrorResponse(status_code=status.HTTP_404_NOT_FOUND, text=str(infe))
         raise error_response.as_http_exception()
 
 
@@ -63,10 +58,7 @@ async def delete_incident_by_id(incident_id: str):
 
     except IncidentNotFoundError as infe:
         logger.error(str(infe))
-        error_response = ErrorResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            text=str(infe)
-        )
+        error_response = ErrorResponse(status_code=status.HTTP_404_NOT_FOUND, text=str(infe))
         raise error_response.as_http_exception()
 
 
@@ -80,10 +72,7 @@ async def get_incident_reports(incident_id: str) -> list[Note]:
         return incident.get_notes()
 
     except IncidentNotFoundError as infe:
-        error_response = ErrorResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            text=str(infe)
-        )
+        error_response = ErrorResponse(status_code=status.HTTP_404_NOT_FOUND, text=str(infe))
         raise error_response.as_http_exception()
 
 
@@ -102,10 +91,7 @@ async def add_incident_notes(incident_id: str, notes: list[str]) -> None:
 
     except IncidentNotFoundError as infe:
         logger.error(str(infe))
-        error_response = ErrorResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            text=str(infe)
-        )
+        error_response = ErrorResponse(status_code=status.HTTP_404_NOT_FOUND, text=str(infe))
         raise error_response.as_http_exception()
 
 

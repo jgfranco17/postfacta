@@ -84,10 +84,7 @@ def create_new_incident(incident_request: NewIncidentRequest) -> Incident:
     """
     new_id = f"postfacta-inc-{uuid4()}"
     timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
-    initial_notes = [
-        Note(timestamp=timestamp, message=note)
-        for note in incident_request.initial_notes
-    ]
+    initial_notes = [Note(timestamp=timestamp, message=note) for note in incident_request.initial_notes]
     return Incident(
         id=new_id,
         title=incident_request.title,

@@ -1,9 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
 
-from postfacta.core.models import Incident
 from postfacta.core.errors import IncidentNotFoundError
-
+from postfacta.core.models import Incident
 
 logger = logging.getLogger(__name__)
 

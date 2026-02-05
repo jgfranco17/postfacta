@@ -9,7 +9,6 @@ from fastapi.responses import JSONResponse
 from postfacta.core.environment import get_logging_level_from_env
 from postfacta.routes.v0.handlers import router_v0
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format="[%(asctime)s][%(levelname)s] %(name)s: %(message)s",

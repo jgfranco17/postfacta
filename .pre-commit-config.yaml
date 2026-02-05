@@ -21,6 +21,23 @@ repos:
       - id: prettier
         files: ^.*\.(go|json|yaml|yml)$
 
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: https://github.com/pycqa/isort
+    rev: 7.0.0
+    hooks:
+      - id: isort
+        args: [--profile, black]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+
   - repo: https://github.com/codespell-project/codespell.git
     rev: v2.2.6
     hooks:
