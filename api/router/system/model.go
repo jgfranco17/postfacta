@@ -3,7 +3,6 @@ package system
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 )
 
 type HealthStatus struct {
@@ -29,16 +28,9 @@ type ServiceInfo struct {
 }
 
 // Reads a JSON file and unmarshals it
-func GetCodebaseSpecFromFile(filePath string) (*ProjectCodebase, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open file: %w", err)
-	}
-	defer file.Close()
-
+func getCodebaseSpec(content []byte) (*ProjectCodebase, error) {
 	var data ProjectCodebase
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&data); err != nil {
+	if err := json.Unmarshal(content, &data); err != nil {
 		return nil, fmt.Errorf("Failed to parse JSON: %w", err)
 	}
 

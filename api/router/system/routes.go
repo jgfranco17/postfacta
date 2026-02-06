@@ -16,11 +16,11 @@ func init() {
 	startTime = time.Now()
 }
 
-func SetSystemRoutes(route *gin.Engine, includeSystemInfo bool) {
+func SetSystemRoutes(route *gin.Engine, data []byte) {
 	log := logging.FromContext(context.Background())
 	startTime = time.Now()
-	if includeSystemInfo {
-		specs, err := GetCodebaseSpecFromFile("specs.json")
+	if data != nil {
+		specs, err := getCodebaseSpec(data)
 		if err != nil {
 			log.Fatal(err)
 		}

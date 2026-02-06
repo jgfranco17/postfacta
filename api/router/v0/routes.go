@@ -8,13 +8,7 @@ import (
 )
 
 // Adds v0 routes to the router.
-func SetRoutes(route *gin.Engine, dbClient db.DatabaseClient) error {
+func SetRoutes(route *gin.RouterGroup, dbClient db.DatabaseClient) {
 	v0 := route.Group("/v0")
-	{
-		testExecutionRoutes := v0.Group("/tests")
-		{
-			testExecutionRoutes.POST("/run", httperror.WithErrorHandling(runTests(dbClient)))
-		}
-	}
-	return nil
+	v0.GET("/incidents", httperror.WithErrorHandling(getAllIncidents(dbClient)))
 }
