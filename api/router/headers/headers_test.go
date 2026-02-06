@@ -40,5 +40,5 @@ func TestCreateOriginInfoHeaderValidHeader(t *testing.T) {
 func TestCreateOriginInfoHeaderMissing(t *testing.T) {
 	ctx := createTestContextWithHeader(t, "X-Origin-Info", "")
 	_, err := CreateOriginInfoHeader(ctx)
-	assert.ErrorContains(t, err, "Header schema validation")
+	assert.ErrorContains(t, err, "header not found")
 }
