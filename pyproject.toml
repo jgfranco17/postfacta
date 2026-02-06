@@ -1,0 +1,11 @@
+[project]
+name = "postfacta"
+version = "0.1.0"
+description = "Test harness for scripting of API testing"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "faker>=40.1.2",
+    "pytest>=9.0.2",
+    "requests>=2.32.5",
+]

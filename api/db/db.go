@@ -13,23 +13,38 @@ type DatabaseClient interface {
 	StoreIncident(ctx context.Context, incident core.Incident) error
 }
 
+var clientSingleton DatabaseClient = &internalClient{
+	storage: make(map[string]core.Incident),
+}
+
 // NewClient creates a new Supabase database client
 func NewClient() (DatabaseClient, error) {
-	client := internalClient{}
-	return &client, nil
+	return clientSingleton, nil
 }
 
 type internalClient struct {
+	storage map[string]core.Incident // In-memory storage for demonstration
 }
 
 func (ic *internalClient) GetIncidentByID(ctx context.Context, incidentID string) (core.Incident, error) {
-	return core.Incident{}, nil
+	if incident, exists := ic.storage[incidentID]; exists {
+		return incident, nil
+	}
+	return core.Incident{}, ErrNotFound
 }
 
 func (ic *internalClient) GetAllIncidents(ctx context.Context) ([]core.Incident, error) {
-	return []core.Incident{}, nil
+	allIncidents := []core.Incident{}
+	for _, incident := range ic.storage {
+		allIncidents = append(allIncidents, incident)
+	}
+	return allIncidents, nil
 }
 
 func (ic *internalClient) StoreIncident(ctx context.Context, incident core.Incident) error {
+	if _, exists := ic.storage[incident.ID]; exists {
+		return ErrConflict
+	}
+	ic.storage[incident.ID] = incident
 	return nil
 }

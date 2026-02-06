@@ -7,24 +7,24 @@ import (
 type Severity string
 
 const (
-	LOW      Severity = "LOW"
-	MEDIUM   Severity = "MEDIUM"
-	HIGH     Severity = "HIGH"
-	CRITICAL Severity = "CRITICAL"
+	SEVERITY_LOW      Severity = "LOW"
+	SEVERITY_MEDIUM   Severity = "MEDIUM"
+	SEVERITY_HIGH     Severity = "HIGH"
+	SEVERITY_CRITICAL Severity = "CRITICAL"
 )
 
 type Status string
 
 const (
-	OPEN        Status = "OPEN"
-	IN_PROGRESS Status = "IN_PROGRESS"
-	RESOLVED    Status = "RESOLVED"
-	CLOSED      Status = "CLOSED"
+	STATUS_OPEN        Status = "OPEN"
+	STATUS_IN_PROGRESS Status = "IN_PROGRESS"
+	STATUS_RESOLVED    Status = "RESOLVED"
+	STATUS_CLOSED      Status = "CLOSED"
 )
 
 type Note struct {
-	Timestamp string `json:"timestamp"`
-	Message   string `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
+	Message   string    `json:"message"`
 }
 
 type Incident struct {
@@ -38,7 +38,7 @@ type Incident struct {
 	InitialNotes    []Note    `json:"initial_notes"`
 	AdditionalNotes []Note    `json:"additional_notes"`
 	Owner           string    `json:"owner,omitempty"`
-	EndTime         time.Time `json:"end_time,omitempty"`
+	EndTime         time.Time `json:"end_time"`
 }
 
 // AddNote adds an additional note to the incident.
@@ -53,12 +53,12 @@ func (i *Incident) GetNotes() []Note {
 
 // CloseIncident closes the incident by updating its status and end time.
 func (i *Incident) CloseIncident() {
-	i.Status = CLOSED
+	i.Status = STATUS_CLOSED
 	i.EndTime = time.Now().UTC()
 }
 
 // ResolveIncident resolves the incident by updating its status and end time.
 func (i *Incident) ResolveIncident() {
-	i.Status = RESOLVED
+	i.Status = STATUS_RESOLVED
 	i.EndTime = time.Now().UTC()
 }
