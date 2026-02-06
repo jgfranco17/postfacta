@@ -2,6 +2,9 @@ package environment
 
 import (
 	"os"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -17,9 +20,10 @@ const (
 	ENV_KEY_JWT_SECRET  = "POSTFACTA_JWT_SECRET"
 	ENV_KEY_DB_URL      = "POSTFACTA_DB_URL"
 	ENV_KEY_DB_KEY      = "POSTFACTA_DB_KEY"
+	ENV_KEY_LOG_LEVEL   = "LOG_LEVEL"
 )
 
-func IsLocalEnvironment() bool {
+func IsRunningLocally() bool {
 	return GetApplicationEnv() == APPLICATION_ENV_LOCAL
 }
 
@@ -33,4 +37,23 @@ func GetEnvWithDefault(key string, defaultValue string) string {
 
 func GetApplicationEnv() string {
 	return GetEnvWithDefault(ENV_KEY_ENVIRONMENT, APPLICATION_ENV_LOCAL)
+}
+
+func GetLogLevel() logrus.Level {
+	appEnv := GetEnvWithDefault(ENV_KEY_LOG_LEVEL, "INFO")
+	stringToLogLevel := map[string]logrus.Level{
+		"DEBUG": logrus.DebugLevel,
+		"INFO":  logrus.InfoLevel,
+		"WARN":  logrus.WarnLevel,
+		"ERROR": logrus.ErrorLevel,
+		"PANIC": logrus.PanicLevel,
+		"FATAL": logrus.FatalLevel,
+		"TRACE": logrus.TraceLevel,
+	}
+
+	level, exists := stringToLogLevel[strings.ToUpper(appEnv)]
+	if !exists {
+		return logrus.InfoLevel
+	}
+	return level
 }

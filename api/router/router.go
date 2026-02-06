@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/jgfranco17/postfacta/api/router/headers"
 	system "github.com/jgfranco17/postfacta/api/router/system"
 	v0 "github.com/jgfranco17/postfacta/api/router/v0"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,9 +22,11 @@ type Service struct {
 	Port   int
 }
 
-func (s *Service) Run() error {
-	err := s.Router.Run(fmt.Sprintf(":%v", s.Port))
-	if err != nil {
+func (s *Service) Run(ctx context.Context) error {
+	logger := logging.FromContext(ctx)
+	logger.WithFields(logrus.Fields{"port": s.Port}).Infof("Starting service")
+
+	if err := s.Router.Run(fmt.Sprintf(":%d", s.Port)); err != nil {
 		return fmt.Errorf("Failed to start service on port %v: %w", s.Port, err)
 	}
 	return nil
@@ -30,17 +34,22 @@ func (s *Service) Run() error {
 
 // Add the fields we want to expose in the logger to the request context
 func addLoggerFields() gin.HandlerFunc {
+	level := env.GetLogLevel()
+	logger := logging.New(os.Stderr, level)
+
 	return func(c *gin.Context) {
-		if !env.IsLocalEnvironment() {
+		logging.AddToRequestContext(c, logger)
+
+		if !env.IsRunningLocally() {
 			requestID := uuid.NewString()
 			environment := os.Getenv(env.ENV_KEY_ENVIRONMENT)
 			version := os.Getenv(env.ENV_KEY_VERSION)
 
-			// Golang recommends contexts to use custom types instead
-			// of strings, but gin defines key as a string.
-			c.Set(string(logging.RequestId), requestID)
-			c.Set(string(logging.Environment), environment)
-			c.Set(string(logging.Version), version)
+			logging.FillFields(c, logging.RequestMetadata{
+				RequestID:   requestID,
+				Environment: environment,
+				Version:     version,
+			})
 
 			originInfo, err := headers.CreateOriginInfoHeader(c)
 
@@ -55,7 +64,7 @@ func addLoggerFields() gin.HandlerFunc {
 // Log the start and completion of a request
 func logRequest() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log := logging.FromContext(c)
+		log := logging.FromRequestContext(c)
 
 		origin := c.Request.Header.Get("Origin")
 		log.Infof("Request Started: [%s] %s from %s", c.Request.Method, c.Request.URL, origin)
@@ -65,33 +74,32 @@ func logRequest() gin.HandlerFunc {
 }
 
 // Configure the router adding routes and middlewares
-func getRouter(dbClient db.DatabaseClient, metadata []byte) (*gin.Engine, error) {
+func getRouter(ctx context.Context, dbClient db.DatabaseClient, metadata []byte) (*gin.Engine, error) {
+	logger := logging.FromContext(ctx)
 	router := gin.Default()
 
 	router.Use(addLoggerFields())
 	router.Use(logRequest())
 	router.Use(GetCors())
 	router.Use(system.PrometheusMiddleware())
-	system.SetSystemRoutes(router, metadata)
+	if err := system.SetSystemRoutes(router, metadata); err != nil {
+		return nil, err
+	}
 
 	apiBaseGroup := router.Group("/api")
 	v0.SetRoutes(apiBaseGroup, dbClient)
 
+	logger.Trace("Router configured")
 	return router, nil
 }
 
-/*
-Create a backend service instance.
-
-[IN] port: server port to listen on
-
-[OUT] *Service: new backend service instance
-*/
-func CreateNewService(port int, dbClient db.DatabaseClient, metadata []byte) (*Service, error) {
-	router, err := getRouter(dbClient, metadata)
+// CreateNewService configures a new service instance.
+func CreateNewService(ctx context.Context, port int, dbClient db.DatabaseClient, metadata []byte) (*Service, error) {
+	router, err := getRouter(ctx, dbClient, metadata)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create new service instance: %w", err)
 	}
+
 	return &Service{
 		Router: router,
 		Port:   port,

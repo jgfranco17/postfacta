@@ -1,10 +1,7 @@
 package system
 
 import (
-	"context"
 	"time"
-
-	"github.com/jgfranco17/postfacta/api/logging"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -16,20 +13,23 @@ func init() {
 	startTime = time.Now()
 }
 
-func SetSystemRoutes(route *gin.Engine, data []byte) {
-	log := logging.FromContext(context.Background())
+func SetSystemRoutes(route *gin.Engine, data []byte) error {
 	startTime = time.Now()
+
 	if data != nil {
 		specs, err := getCodebaseSpec(data)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		route.GET("/service-info", ServiceInfoHandler(specs, startTime))
 	}
 	for _, homeRoute := range []string{"", "/home"} {
 		route.GET(homeRoute, HomeHandler)
 	}
+
 	route.GET("/healthz", HealthCheckHandler())
 	route.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	route.NoRoute(NotFoundHandler)
+
+	return nil
 }

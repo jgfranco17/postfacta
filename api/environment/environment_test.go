@@ -26,5 +26,5 @@ func TestEnvironmentRetrieval(t *testing.T) {
 
 func TestCheckLocalEnvironment(t *testing.T) {
 	t.Setenv(ENV_KEY_ENVIRONMENT, APPLICATION_ENV_LOCAL)
-	assert.True(t, IsLocalEnvironment())
+	assert.True(t, IsRunningLocally())
 }

@@ -1,16 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"time"
+	"os"
 
 	"github.com/jgfranco17/postfacta/api/db"
-	env "github.com/jgfranco17/postfacta/api/environment"
+	"github.com/jgfranco17/postfacta/api/logging"
 	"github.com/jgfranco17/postfacta/api/router"
-	"github.com/jgfranco17/postfacta/api/router/system"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 
 	_ "embed"
@@ -24,39 +23,31 @@ var (
 //go:embed specs.json
 var embeddedConfig []byte
 
-func init() {
-	if env.IsLocalEnvironment() {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			TimestampFormat: time.DateTime,
-			DisableSorting:  true,
-			PadLevelText:    true,
-		})
-		gin.SetMode(gin.DebugMode)
-	} else {
-		logrus.SetFormatter(&logrus.JSONFormatter{})
-		gin.SetMode(gin.ReleaseMode)
-	}
-	prometheus.Register(system.HttpLastRequestReceivedTime)
-	logrus.SetLevel(logrus.DebugLevel)
-}
-
 func main() {
 	flag.Parse()
+	logger := logging.New(os.Stderr, logrus.InfoLevel)
+
 	if *devMode {
-		logrus.Infof("Running API server on port %d in dev mode", *port)
+		logger.Infof("Running API server on port %d in dev mode", *port)
 	} else {
-		logrus.Infof("Running API production server on port %d", *port)
+		logger.Infof("Running API production server on port %d", *port)
 		gin.SetMode(gin.ReleaseMode)
 	}
+
 	dbClient, err := db.NewClient()
 	if err != nil {
-		logrus.Fatalf("Error initializing database client: %v", err)
+		logger.Fatalf("Error initializing database client: %v", err)
 	}
-	service, err := router.CreateNewService(*port, dbClient, embeddedConfig)
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	ctx = logging.AddToContext(ctx, logger)
+
+	service, err := router.CreateNewService(ctx, *port, dbClient, embeddedConfig)
 	if err != nil {
-		logrus.Fatalf("Error creating the server: %v", err)
+		logger.Fatalf("Error creating the server: %v", err)
 	}
-	err = service.Run()
+	err = service.Run(ctx)
 	if err != nil {
 		logrus.Fatalf("Error starting the server: %v", err)
 	}
