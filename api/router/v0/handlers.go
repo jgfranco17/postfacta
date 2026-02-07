@@ -2,6 +2,7 @@ package v0
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jgfranco17/postfacta/api/core"
@@ -45,15 +46,15 @@ func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 
 		newIncidentID := uuid.New().String()
 		incident := core.Incident{
-			ID:              newIncidentID,
-			Title:           requestBody.Title,
-			Description:     requestBody.Description,
-			Reporter:        requestBody.Reporter,
-			Severity:        requestBody.Severity,
-			Owner:           requestBody.Owner,
-			Status:          core.STATUS_OPEN,
-			InitialNotes:    requestBody.Notes,
-			AdditionalNotes: []core.Note{},
+			ID:           newIncidentID,
+			Title:        requestBody.Title,
+			Description:  requestBody.Description,
+			Reporter:     requestBody.Reporter,
+			Severity:     requestBody.Severity,
+			Owner:        requestBody.Owner,
+			Status:       core.STATUS_OPEN,
+			InitialNotes: requestBody.Notes,
+			StartTime:    time.Now().UTC(),
 		}
 		if err := dbClient.StoreIncident(c, incident); err != nil {
 			return httperror.New(c, http.StatusInternalServerError, "")

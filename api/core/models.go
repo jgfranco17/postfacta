@@ -38,7 +38,7 @@ type Incident struct {
 	InitialNotes    []Note    `json:"initial_notes"`
 	AdditionalNotes []Note    `json:"additional_notes"`
 	Owner           string    `json:"owner,omitempty"`
-	EndTime         time.Time `json:"end_time"`
+	EndTime         time.Time `json:"end_time,omitempty"`
 }
 
 // AddNote adds an additional note to the incident.

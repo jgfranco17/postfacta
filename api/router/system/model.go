@@ -6,8 +6,7 @@ import (
 )
 
 type HealthStatus struct {
-	Timestamp string `json:"timestamp"`
-	Status    string `json:"status"`
+	Status string `json:"status"`
 }
 
 type ProjectCodebase struct {
