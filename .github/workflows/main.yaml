@@ -25,6 +25,6 @@ jobs:
       - name: Set up workspace
         uses: ./.github/actions/setup-workspace
 
-      - name: Check test coverage
+      - name: Execute tests
         run: |
-          just pytest -x
+          just test

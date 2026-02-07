@@ -1,4 +1,5 @@
 import argparse
+import datetime as dt
 import os
 from typing import Final
 
@@ -24,15 +25,22 @@ def _get_url_from_env() -> str:
 def _create_single_mock_incident(session: Session, base_api_url: str, count: int) -> str:
     """Create a mock incident via the API and return its ID."""
     fake = Faker()
-    request_payload = {
+    request_payload: dict = {
         "title": f"Integration Test Incident {count}",
         "description": f"This is a test incident #{count} created during integration testing.",
         "reporter": fake.name(),
         "severity": "LOW",
         "owner": fake.name(),
     }
+    if count % 2 == 0:
+        mock_notes = [
+            {"timestamp": str(fake.future_datetime()), "message": f"Note: {fake.sentence()}"}
+            for _ in range(count + 1)
+        ]
+        request_payload.update({"notes": mock_notes})
     api_url = f"{base_api_url}/api/v0/incidents/start"
     response = session.post(api_url, json=request_payload)
+    assert response.status_code == 201, f"Expected 201 Created, got {response.status_code}"
     print(f"Created mock incident ({response.status_code}): {response.text}")
     return response.json()["id"]
 
