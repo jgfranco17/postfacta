@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Severity string
@@ -39,6 +41,32 @@ type Incident struct {
 	AdditionalNotes []Note    `json:"additional_notes"`
 	Owner           string    `json:"owner,omitempty"`
 	EndTime         time.Time `json:"end_time,omitempty"`
+}
+
+type IncidentRequest struct {
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Reporter    string   `json:"reporter"`
+	Severity    Severity `json:"severity"`
+	Owner       string   `json:"owner,omitempty"`
+	Notes       []Note   `json:"notes,omitempty"`
+}
+
+// NewIncident creates a new base incident with the provided details.
+func NewIncident(request IncidentRequest) Incident {
+	newIncidentID := uuid.New().String()
+	timeNow := time.Now().UTC()
+	return Incident{
+		ID:           newIncidentID,
+		Title:        request.Title,
+		Description:  request.Description,
+		Reporter:     request.Reporter,
+		Severity:     request.Severity,
+		Owner:        request.Owner,
+		Status:       STATUS_OPEN,
+		InitialNotes: request.Notes,
+		StartTime:    timeNow,
+	}
 }
 
 // AddNote adds an additional note to the incident.

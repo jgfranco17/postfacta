@@ -2,9 +2,7 @@ package v0
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jgfranco17/postfacta/api/core"
 	"github.com/jgfranco17/postfacta/api/db"
 	"github.com/jgfranco17/postfacta/api/httperror"
@@ -39,29 +37,18 @@ type incidentStartResponse struct {
 
 func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	return func(c *gin.Context) error {
-		var requestBody incidentStartRequest
+		var requestBody core.IncidentRequest
 		if err := c.ShouldBindJSON(&requestBody); err != nil {
 			return httperror.New(c, http.StatusBadRequest, "Invalid request body: %s", err.Error())
 		}
 
-		newIncidentID := uuid.New().String()
-		incident := core.Incident{
-			ID:           newIncidentID,
-			Title:        requestBody.Title,
-			Description:  requestBody.Description,
-			Reporter:     requestBody.Reporter,
-			Severity:     requestBody.Severity,
-			Owner:        requestBody.Owner,
-			Status:       core.STATUS_OPEN,
-			InitialNotes: requestBody.Notes,
-			StartTime:    time.Now().UTC(),
-		}
+		incident := core.NewIncident(requestBody)
 		if err := dbClient.StoreIncident(c, incident); err != nil {
 			return httperror.New(c, http.StatusInternalServerError, "")
 		}
 
 		c.JSON(http.StatusCreated, incidentStartResponse{
-			ID:      newIncidentID,
+			ID:      incident.ID,
 			Message: "Incident started successfully",
 		})
 		return nil
