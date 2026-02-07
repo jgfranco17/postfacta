@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,6 +26,45 @@ func TestEnvironmentRetrieval(t *testing.T) {
 }
 
 func TestCheckLocalEnvironment(t *testing.T) {
-	t.Setenv(ENV_KEY_ENVIRONMENT, APPLICATION_ENV_LOCAL)
-	assert.True(t, IsRunningLocally())
+	testCases := []struct {
+		envValue        string
+		expectedIsLocal bool
+	}{
+		{envValue: APPLICATION_ENV_LOCAL, expectedIsLocal: true},
+		{envValue: APPLICATION_ENV_DEV, expectedIsLocal: false},
+		{envValue: APPLICATION_ENV_STAGE, expectedIsLocal: false},
+		{envValue: APPLICATION_ENV_PROD, expectedIsLocal: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("Environment [%s] is local: %t", tc.envValue, tc.expectedIsLocal), func(t *testing.T) {
+			t.Setenv(ENV_KEY_ENVIRONMENT, tc.envValue)
+			isLocal := IsRunningLocally()
+			assert.Equal(t, tc.expectedIsLocal, isLocal)
+		})
+	}
+}
+
+func TestGetLogLevel(t *testing.T) {
+	testCases := []struct {
+		envValue      string
+		expectedLevel logrus.Level
+	}{
+		{envValue: "DEBUG", expectedLevel: logrus.DebugLevel},
+		{envValue: "INFO", expectedLevel: logrus.InfoLevel},
+		{envValue: "WARN", expectedLevel: logrus.WarnLevel},
+		{envValue: "ERROR", expectedLevel: logrus.ErrorLevel},
+		{envValue: "PANIC", expectedLevel: logrus.PanicLevel},
+		{envValue: "FATAL", expectedLevel: logrus.FatalLevel},
+		{envValue: "TRACE", expectedLevel: logrus.TraceLevel},
+		{envValue: "UNKNOWN", expectedLevel: logrus.InfoLevel}, // Default case
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("Using log level [%s]", tc.envValue), func(t *testing.T) {
+			t.Setenv(ENV_KEY_LOG_LEVEL, tc.envValue)
+			logLevel := GetLogLevel()
+			assert.Equal(t, tc.expectedLevel, logLevel)
+		})
+	}
 }

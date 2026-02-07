@@ -3,6 +3,7 @@ package environment
 import (
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -21,6 +22,7 @@ const (
 	ENV_KEY_DB_URL      = "POSTFACTA_DB_URL"
 	ENV_KEY_DB_KEY      = "POSTFACTA_DB_KEY"
 	ENV_KEY_LOG_LEVEL   = "LOG_LEVEL"
+	ENV_LOG_FORMAT      = "LOG_FORMAT"
 )
 
 func IsRunningLocally() bool {
@@ -56,4 +58,32 @@ func GetLogLevel() logrus.Level {
 		return logrus.InfoLevel
 	}
 	return level
+}
+
+func GetLogFormatter() logrus.Formatter {
+	format := GetEnvWithDefault(ENV_LOG_FORMAT, "DEFAULT")
+	switch strings.ToUpper(format) {
+	case "JSON":
+		return &logrus.JSONFormatter{
+			TimestampFormat: "2006-01-02T15:04:05Z07:00",
+		}
+	case "TEXT":
+		return &logrus.TextFormatter{
+			DisableColors:          false,
+			PadLevelText:           true,
+			QuoteEmptyFields:       true,
+			FullTimestamp:          true,
+			DisableSorting:         true,
+			DisableLevelTruncation: true,
+			TimestampFormat:        time.DateTime,
+		}
+	}
+	return &logrus.TextFormatter{
+		DisableColors:    false,
+		PadLevelText:     true,
+		QuoteEmptyFields: true,
+		DisableSorting:   true,
+		FullTimestamp:    true,
+		TimestampFormat:  time.RFC822,
+	}
 }

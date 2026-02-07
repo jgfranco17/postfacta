@@ -3,7 +3,6 @@ package logging
 import (
 	"context"
 	"io"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jgfranco17/postfacta/api/environment"
@@ -27,24 +26,9 @@ func New(stream io.Writer, level logrus.Level) *logrus.Logger {
 	logger.SetOutput(stream)
 	logger.SetLevel(level)
 
-	var formatter logrus.Formatter
-	if environment.IsRunningLocally() {
-		formatter = &logrus.TextFormatter{
-			DisableColors:          false,
-			PadLevelText:           true,
-			QuoteEmptyFields:       true,
-			FullTimestamp:          true,
-			DisableSorting:         true,
-			DisableLevelTruncation: true,
-			TimestampFormat:        time.DateTime,
-		}
-	} else {
-		formatter = &logrus.JSONFormatter{
-			TimestampFormat: time.RFC3339,
-		}
-	}
-
+	formatter := environment.GetLogFormatter()
 	logger.SetFormatter(formatter)
+
 	return logger
 }
 
