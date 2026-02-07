@@ -30,8 +30,8 @@ func IsRunningLocally() bool {
 }
 
 func GetEnvWithDefault(key string, defaultValue string) string {
-	value, present := os.LookupEnv(key)
-	if present {
+	value := os.Getenv(key)
+	if value != "" {
 		return value
 	}
 	return defaultValue
