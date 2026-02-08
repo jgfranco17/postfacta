@@ -1,6 +1,7 @@
 package v0
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/jgfranco17/postfacta/api/db"
@@ -35,6 +36,9 @@ func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 
 		incident := entry.New(requestBody)
 		if err := dbClient.StoreIncident(c, incident); err != nil {
+			if errors.Is(err, db.ErrConflict) {
+				return httperror.New(c, http.StatusConflict, "Incident with the same ID already exists")
+			}
 			return httperror.New(c, http.StatusInternalServerError, "")
 		}
 
