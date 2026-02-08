@@ -1,4 +1,4 @@
-package core
+package entry
 
 import (
 	"time"
@@ -52,8 +52,8 @@ type IncidentRequest struct {
 	Notes       []Note   `json:"notes,omitempty"`
 }
 
-// NewIncident creates a new base incident with the provided details.
-func NewIncident(request IncidentRequest) Incident {
+// New creates a new base incident with the provided details.
+func New(request IncidentRequest) Incident {
 	newIncidentID := uuid.New().String()
 	timeNow := time.Now().UTC()
 	return Incident{

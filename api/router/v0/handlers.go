@@ -3,8 +3,8 @@ package v0
 import (
 	"net/http"
 
-	"github.com/jgfranco17/postfacta/api/core"
 	"github.com/jgfranco17/postfacta/api/db"
+	"github.com/jgfranco17/postfacta/api/entry"
 	"github.com/jgfranco17/postfacta/api/httperror"
 
 	"github.com/gin-gonic/gin"
@@ -28,12 +28,12 @@ type incidentStartResponse struct {
 
 func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	return func(c *gin.Context) error {
-		var requestBody core.IncidentRequest
+		var requestBody entry.IncidentRequest
 		if err := c.ShouldBindJSON(&requestBody); err != nil {
 			return httperror.New(c, http.StatusBadRequest, "Invalid request body: %s", err.Error())
 		}
 
-		incident := core.NewIncident(requestBody)
+		incident := entry.New(requestBody)
 		if err := dbClient.StoreIncident(c, incident); err != nil {
 			return httperror.New(c, http.StatusInternalServerError, "")
 		}
