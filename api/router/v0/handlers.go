@@ -21,15 +21,6 @@ func getAllIncidents(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	}
 }
 
-type incidentStartRequest struct {
-	Title       string        `json:"title" binding:"required"`
-	Description string        `json:"description" binding:"required"`
-	Reporter    string        `json:"reporter" binding:"required"`
-	Severity    core.Severity `json:"severity" binding:"required,oneof=LOW MEDIUM HIGH CRITICAL"`
-	Owner       string        `json:"owner" binding:"required"`
-	Notes       []core.Note   `json:"notes"`
-}
-
 type incidentStartResponse struct {
 	ID      string `json:"id"`
 	Message string `json:"message"`
