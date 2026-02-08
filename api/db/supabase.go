@@ -1,7 +1,7 @@
 package db
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"sync"
 
@@ -10,22 +10,26 @@ import (
 )
 
 var (
-	supaClient *supabase.Client
-	once       sync.Once
+	loadClientOnce = sync.OnceValues(loadSupabaseClient)
 )
 
 // GetSupabaseClient returns a singleton Supabase client
-func GetSupabaseClient() *supabase.Client {
-	once.Do(func() {
-		client, err := supabase.NewClient(
-			os.Getenv(environment.ENV_KEY_DB_URL),
-			os.Getenv(environment.ENV_KEY_DB_KEY),
-			&supabase.ClientOptions{},
-		)
-		if err != nil {
-			log.Fatalf("Failed to initialize Supabase client: %v", err)
-		}
-		supaClient = client
-	})
-	return supaClient
+func GetSupabaseClient() (*supabase.Client, error) {
+	return loadClientOnce()
+}
+
+// loadSupabaseClient initializes and returns a Supabase client.
+// Serves as a wrapper for the Once sync to ensure singleton behavior.
+func loadSupabaseClient() (*supabase.Client, error) {
+	databaseURL := os.Getenv(environment.ENV_KEY_DB_URL)
+	databaseKey := os.Getenv(environment.ENV_KEY_DB_KEY)
+	if databaseURL == "" || databaseKey == "" {
+		return nil, fmt.Errorf("both database URL and private key must be set in environment.")
+	}
+
+	client, err := supabase.NewClient(databaseURL, databaseKey, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to initialize Supabase client: %v", err)
+	}
+	return client, nil
 }
