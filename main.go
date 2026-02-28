@@ -34,21 +34,21 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	dbClient, err := db.NewClient()
-	if err != nil {
-		logger.Fatalf("Error initializing database client: %v", err)
-	}
-
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	ctx = logging.AddToContext(ctx, logger)
+
+	dbClient, err := db.NewClient(ctx)
+	if err != nil {
+		logger.Fatalf("Error initializing database client: %v", err)
+	}
 
 	service, err := router.CreateNewService(ctx, *port, dbClient, embeddedConfig)
 	if err != nil {
 		logger.Fatalf("Error creating the server: %v", err)
 	}
-	err = service.Run(ctx)
-	if err != nil {
-		logrus.Fatalf("Error starting the server: %v", err)
+
+	if err := service.Run(ctx); err != nil {
+		logger.Fatalf("Error starting the server: %v", err)
 	}
 }
