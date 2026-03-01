@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jgfranco17/postfacta/api/environment"
-	"github.com/jgfranco17/postfacta/api/logging"
+	"github.com/jgfranco17/postfacta/api/httperror"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,14 +39,5 @@ func HealthCheckHandler() func(c *gin.Context) {
 }
 
 func NotFoundHandler(c *gin.Context) {
-	log := logging.FromContext(c)
-	log.Errorf("Non-existent endpoint accessed: %s", c.Request.URL.Path)
-	c.JSON(http.StatusNotFound, newMissingEndpoint(c.Request.URL.Path))
-}
-
-func newMissingEndpoint(endpoint string) BasicErrorInfo {
-	return BasicErrorInfo{
-		StatusCode: http.StatusNotFound,
-		Message:    fmt.Sprintf("Endpoint '%s' does not exist", endpoint),
-	}
+	httperror.RespondWithError(c, http.StatusNotFound, "Endpoint '%s' does not exist", c.Request.URL.Path)
 }

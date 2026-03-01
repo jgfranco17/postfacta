@@ -82,8 +82,13 @@ var _ = Describe("System endpoints", func() {
 	})
 
 	It("returns not found for unknown routes", func() {
-		response, _, err := runner.Do(http.MethodGet, "/does-not-exist", nil, nil)
+		response, body, err := runner.Do(http.MethodGet, "/does-not-exist", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(response.StatusCode).To(Equal(http.StatusNotFound))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("does not exist"))
+		Expect(payload.Message).To(ContainSubstring("/does-not-exist"))
 	})
 })

@@ -20,10 +20,6 @@ type startIncidentResponse struct {
 	Message string `json:"message"`
 }
 
-type errorResponse struct {
-	Message string `json:"message"`
-}
-
 var _ = Describe("Incident endpoints", func() {
 	var server *httptest.Server
 	var dbMock *DatabaseClientMock

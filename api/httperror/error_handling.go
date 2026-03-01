@@ -3,6 +3,7 @@ package httperror
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/jgfranco17/postfacta/api/logging"
 
@@ -32,6 +33,15 @@ func WithErrorHandling(handler func(c *gin.Context) error) gin.HandlerFunc {
 			handleError(c, err)
 		}
 	}
+}
+
+// RespondWithError sends a standardized error response with consistent format.
+// This is intended for handlers that don't use WithErrorHandling middleware,
+// such as system/infrastructure handlers. It creates an HttpError internally
+// and processes it through the same error handling path to ensure consistency.
+func RespondWithError(c *gin.Context, status int, format string, a ...any) {
+	err := New(c, status, format, a...)
+	handleError(c, err)
 }
 
 func getContextField(ctx context.Context, fieldName string) string {
@@ -65,14 +75,17 @@ func extractErrorResponse(ctx context.Context, err error) ServiceError {
 		body.Message = errorMessage
 		status := httpErrInstance.Status()
 		if status < 100 || status > 599 {
-			status = 500
+			status = http.StatusInternalServerError
 		}
 		return ServiceError{Status: status, Body: body}
 	}
 
 	body := getErrorMetadataFromContext(ctx)
 	body.Message = "Internal Server Error"
-	return ServiceError{Status: 500, Body: body}
+	return ServiceError{
+		Status: http.StatusInternalServerError,
+		Body:   body,
+	}
 }
 
 // handleError logs the error and sends the appropriate HTTP response to the client.
