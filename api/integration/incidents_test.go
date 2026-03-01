@@ -93,7 +93,7 @@ var _ = Describe("Incident endpoints", func() {
 
 		response, _, err := runner.Do(http.MethodGet, "/api/v0/incidents", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+		Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
 	})
 
 	It("starts a new incident", func() {
@@ -157,7 +157,7 @@ var _ = Describe("Incident endpoints", func() {
 			"Content-Type": "application/json",
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+		Expect(response.StatusCode).To(Equal(http.StatusConflict))
 
 		var payload errorResponse
 		Expect(json.Unmarshal(body, &payload)).To(Succeed())
@@ -180,6 +180,6 @@ var _ = Describe("Incident endpoints", func() {
 			"Content-Type": "application/json",
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+		Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
 	})
 })

@@ -9,15 +9,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ServiceError represents the structure of an error response sent to clients.
+// It includes the HTTP status code and a body containing the error message
+// and additional optional metadata.
+type ServiceError struct {
+	Status int
+	Body   errorBody
+}
+
 type errorBody struct {
 	Message        string `json:"message,omitempty"`
 	RequestID      string `json:"requestId,omitempty"`
 	ServiceVersion string `json:"serviceVersion,omitempty"`
 }
 
-type errorResponse struct {
-	Status int
-	Body   errorBody
+// WithErrorHandling wraps a handler function that returns an error, automatically
+// handling any returned errors by logging and sending an appropriate HTTP response.
+func WithErrorHandling(handler func(c *gin.Context) error) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		err := handler(c)
+		if err != nil {
+			handleError(c, err)
+		}
+	}
 }
 
 func getContextField(ctx context.Context, fieldName string) string {
@@ -38,46 +52,33 @@ func getErrorMetadataFromContext(ctx context.Context) errorBody {
 	}
 }
 
-// Get an error response from a core error.
-// Currently the messages are generic.
-func getErrorResponse(ctx context.Context, err error) errorResponse {
-
+// extractErrorResponse converts an error into an HTTP error response.
+// If the error is an HttpError (or wraps one), it extracts the status code and request metadata.
+// Status codes outside the valid HTTP range (100-599) are replaced with 500.
+// Non-HttpError instances are treated as internal server errors (500) with a generic message.
+func extractErrorResponse(ctx context.Context, err error) ServiceError {
 	errorMessage := err.Error()
 
-	var inputErr HttpError
-	if errors.As(err, &inputErr) {
-		body := getErrorMetadataFromContext(inputErr.Context())
+	var httpErrInstance HttpError
+	if errors.As(err, &httpErrInstance) {
+		body := getErrorMetadataFromContext(httpErrInstance.Context())
 		body.Message = errorMessage
-		return errorResponse{Status: 400, Body: body}
+		status := httpErrInstance.Status()
+		if status < 100 || status > 599 {
+			status = 500
+		}
+		return ServiceError{Status: status, Body: body}
 	}
+
 	body := getErrorMetadataFromContext(ctx)
 	body.Message = "Internal Server Error"
-	return errorResponse{Status: 500, Body: body}
-
+	return ServiceError{Status: 500, Body: body}
 }
 
-// Generic error handling
+// handleError logs the error and sends the appropriate HTTP response to the client.
 func handleError(c *gin.Context, err error) {
 	log := logging.FromContext(c)
 	log.Error(err)
-	errorResponse := getErrorResponse(c, err)
+	errorResponse := extractErrorResponse(c, err)
 	c.JSON(errorResponse.Status, errorResponse.Body)
-}
-
-func ServeError(c *gin.Context, status int, message string, err error) {
-	c.JSON(status, gin.H{
-		"status":    status,
-		"message":   message,
-		"traceback": err.Error(),
-	})
-}
-
-// Wrapper for handlers that return errors
-func WithErrorHandling(handler func(c *gin.Context) error) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		err := handler(c)
-		if err != nil {
-			handleError(c, err)
-		}
-	}
 }
