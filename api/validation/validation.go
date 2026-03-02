@@ -43,7 +43,7 @@ func formatValidationErrors(errs validator.ValidationErrors) string {
 		case "oneof":
 			messages = append(messages, fmt.Sprintf("%s must be one of [%s]", field, err.Param()))
 		default:
-			messages = append(messages, fmt.Sprintf("%s validation failed", field))
+			messages = append(messages, fmt.Sprintf("%q validation failed", field))
 		}
 	}
 

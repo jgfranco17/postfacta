@@ -16,7 +16,7 @@ func getAllIncidents(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	return func(c *gin.Context) error {
 		incidents, err := dbClient.GetAllIncidents(c)
 		if err != nil {
-			return httperror.New(c, http.StatusInternalServerError, "Failed to retrieve incidents: internal error")
+			return httperror.New(c, http.StatusInternalServerError, "Failed to retrieve incidents: %w", err)
 		}
 		c.JSON(http.StatusOK, incidents)
 		return nil
@@ -38,9 +38,9 @@ func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 		incident := entry.New(requestBody)
 		if err := dbClient.StoreIncident(c, incident); err != nil {
 			if errors.Is(err, db.ErrConflict) {
-				return httperror.New(c, http.StatusConflict, "Incident with the same ID already exists")
+				return httperror.New(c, http.StatusConflict, "Incident with the same ID already exists: %w", err)
 			}
-			return httperror.New(c, http.StatusInternalServerError, "Failed to store incident: internal error")
+			return httperror.New(c, http.StatusInternalServerError, "Failed to store incident: %w", err)
 		}
 
 		c.JSON(http.StatusCreated, incidentStartResponse{
