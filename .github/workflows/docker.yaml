@@ -1,0 +1,49 @@
+---
+name: Docker Build Validation
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+jobs:
+  system-test:
+    name: Run system tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up workspace
+        uses: ./.github/actions/setup-workspace
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+
+      - name: Build and run container
+        run: |
+          just up
+          sleep 5
+          docker ps
+
+      - name: Test service health
+        run: |
+          curl --fail "http://localhost:8080/healthz"
+
+      - name: Clean up
+        if: always()
+        run: |
+          just down
