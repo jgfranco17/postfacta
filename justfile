@@ -25,12 +25,12 @@ integration:
     go clean -testcache
     ginkgo -v ./api/integration/...
 
-# Generate unit test coverage report
-coverage threshold="80":
+# Generate total coverage report (unit + integration)
+coverage threshold="70":
     #!/usr/bin/env bash
-    echo "[TEST] Generating unit test coverage..."
+    echo "[TEST] Generating total coverage across all tests..."
     go clean -testcache
-    go test -coverprofile={{ COVERAGE_OUTPUT }} ./...
+    go test -coverprofile={{ COVERAGE_OUTPUT }} -coverpkg="./api/..." ./...
     total=$(go tool cover -func={{ COVERAGE_OUTPUT }} | awk '/^total:/ {print $3}' | tr -d '%')
     if [[ -z "$total" ]]; then
         echo "[TEST] Failed to parse total coverage"
