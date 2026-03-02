@@ -297,3 +297,91 @@ func TestNote_Creation(t *testing.T) {
 		})
 	}
 }
+
+func TestNew(t *testing.T) {
+	testCases := []struct {
+		name           string
+		request        IncidentRequest
+		validateFields func(t *testing.T, incident Incident, request IncidentRequest)
+	}{
+		{
+			name: "create incident with all fields",
+			request: IncidentRequest{
+				Title:       "Database outage",
+				Description: "Primary database is not responding",
+				Reporter:    "sre-team",
+				Severity:    SEVERITY_CRITICAL,
+				Owner:       "platform-team",
+				Notes: []Note{
+					{Timestamp: time.Date(2026, 3, 1, 10, 0, 0, 0, time.UTC), Message: "Initial detection"},
+					{Timestamp: time.Date(2026, 3, 1, 10, 5, 0, 0, time.UTC), Message: "Escalated to oncall"},
+				},
+			},
+			validateFields: func(t *testing.T, incident Incident, request IncidentRequest) {
+				assert.NotEmpty(t, incident.ID)
+				assert.Equal(t, request.Title, incident.Title)
+				assert.Equal(t, request.Description, incident.Description)
+				assert.Equal(t, request.Reporter, incident.Reporter)
+				assert.Equal(t, request.Severity, incident.Severity)
+				assert.Equal(t, request.Owner, incident.Owner)
+				assert.Equal(t, STATUS_OPEN, incident.Status)
+				assert.Len(t, incident.InitialNotes, 2)
+				assert.False(t, incident.StartTime.IsZero())
+			},
+		},
+		{
+			name: "create incident with minimal fields",
+			request: IncidentRequest{
+				Title:       "API latency spike",
+				Description: "Response times increased by 200%",
+				Reporter:    "monitoring",
+				Severity:    SEVERITY_MEDIUM,
+			},
+			validateFields: func(t *testing.T, incident Incident, request IncidentRequest) {
+				assert.NotEmpty(t, incident.ID)
+				assert.Equal(t, request.Title, incident.Title)
+				assert.Equal(t, request.Description, incident.Description)
+				assert.Equal(t, request.Reporter, incident.Reporter)
+				assert.Equal(t, request.Severity, incident.Severity)
+				assert.Empty(t, incident.Owner)
+				assert.Equal(t, STATUS_OPEN, incident.Status)
+				assert.Nil(t, incident.InitialNotes)
+				assert.False(t, incident.StartTime.IsZero())
+			},
+		},
+		{
+			name: "verify unique IDs",
+			request: IncidentRequest{
+				Title:       "Test incident",
+				Description: "Testing ID uniqueness",
+				Reporter:    "test",
+				Severity:    SEVERITY_LOW,
+			},
+			validateFields: func(t *testing.T, incident Incident, request IncidentRequest) {
+				incident2 := New(request)
+				assert.NotEqual(t, incident.ID, incident2.ID, "Each call to New should generate a unique ID")
+			},
+		},
+		{
+			name: "verify timestamp is recent",
+			request: IncidentRequest{
+				Title:       "Timestamp test",
+				Description: "Testing that timestamp is set correctly",
+				Reporter:    "test",
+				Severity:    SEVERITY_LOW,
+			},
+			validateFields: func(t *testing.T, incident Incident, request IncidentRequest) {
+				now := time.Now().UTC()
+				timeDiff := now.Sub(incident.StartTime)
+				assert.True(t, timeDiff < 1*time.Second, "StartTime should be very recent")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			incident := New(tc.request)
+			tc.validateFields(t, incident, tc.request)
+		})
+	}
+}

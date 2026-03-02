@@ -68,3 +68,56 @@ func TestGetLogLevel(t *testing.T) {
 		})
 	}
 }
+
+func TestGetEnvWithDefaultReturnsDefault(t *testing.T) {
+	nonExistentKey := "NONEXISTENT_KEY_12345"
+	defaultValue := "default"
+
+	result := GetEnvWithDefault(nonExistentKey, defaultValue)
+
+	assert.Equal(t, defaultValue, result)
+}
+
+func TestGetLogFormatter(t *testing.T) {
+	testCases := []struct {
+		name         string
+		envValue     string
+		expectedType string
+	}{
+		{
+			name:         "JSON formatter",
+			envValue:     "JSON",
+			expectedType: "*logrus.JSONFormatter",
+		},
+		{
+			name:         "TEXT formatter",
+			envValue:     "TEXT",
+			expectedType: "*logrus.TextFormatter",
+		},
+		{
+			name:         "lowercase json",
+			envValue:     "json",
+			expectedType: "*logrus.JSONFormatter",
+		},
+		{
+			name:         "Default formatter",
+			envValue:     "DEFAULT",
+			expectedType: "*logrus.TextFormatter",
+		},
+		{
+			name:         "Unknown formatter defaults to TextFormatter",
+			envValue:     "UNKNOWN",
+			expectedType: "*logrus.TextFormatter",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(ENV_LOG_FORMAT, tc.envValue)
+			formatter := GetLogFormatter()
+
+			assert.NotNil(t, formatter)
+			assert.Equal(t, tc.expectedType, fmt.Sprintf("%T", formatter))
+		})
+	}
+}
