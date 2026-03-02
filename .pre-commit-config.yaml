@@ -33,3 +33,12 @@ repos:
     hooks:
       - id: markdownlint
         args: [--config, ".markdownlint.yaml"]
+
+  - repo: local
+    hooks:
+      - id: go-coverage
+        name: go-coverage
+        entry: just coverage
+        language: system
+        pass_filenames: false
+        types: [go]

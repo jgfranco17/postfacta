@@ -20,10 +20,6 @@ type startIncidentResponse struct {
 	Message string `json:"message"`
 }
 
-type errorResponse struct {
-	Message string `json:"message"`
-}
-
 var _ = Describe("Incident endpoints", func() {
 	var server *httptest.Server
 	var dbMock *DatabaseClientMock
@@ -93,7 +89,7 @@ var _ = Describe("Incident endpoints", func() {
 
 		response, _, err := runner.Do(http.MethodGet, "/api/v0/incidents", nil, nil)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+		Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
 	})
 
 	It("starts a new incident", func() {
@@ -157,7 +153,7 @@ var _ = Describe("Incident endpoints", func() {
 			"Content-Type": "application/json",
 		})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+		Expect(response.StatusCode).To(Equal(http.StatusConflict))
 
 		var payload errorResponse
 		Expect(json.Unmarshal(body, &payload)).To(Succeed())
@@ -180,6 +176,115 @@ var _ = Describe("Incident endpoints", func() {
 			"Content-Type": "application/json",
 		})
 		Expect(err).NotTo(HaveOccurred())
+		Expect(response.StatusCode).To(Equal(http.StatusInternalServerError))
+	})
+
+	It("rejects incident with empty title", func() {
+		requestBody := map[string]any{
+			"title":       "",
+			"description": "Valid description text",
+			"reporter":    "sre",
+			"severity":    "HIGH",
+		}
+		reader, err := toJSONReader(requestBody)
+		Expect(err).NotTo(HaveOccurred())
+
+		response, body, err := runner.Do(http.MethodPost, "/api/v0/incidents/start", reader, map[string]string{
+			"Content-Type": "application/json",
+		})
+		Expect(err).NotTo(HaveOccurred())
 		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("Validation failed"))
+		Expect(payload.Message).To(ContainSubstring("title"))
+	})
+
+	It("rejects incident with title too short", func() {
+		requestBody := map[string]any{
+			"title":       "AB",
+			"description": "Valid description text",
+			"reporter":    "sre",
+			"severity":    "HIGH",
+		}
+		reader, err := toJSONReader(requestBody)
+		Expect(err).NotTo(HaveOccurred())
+
+		response, body, err := runner.Do(http.MethodPost, "/api/v0/incidents/start", reader, map[string]string{
+			"Content-Type": "application/json",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("Validation failed"))
+		Expect(payload.Message).To(ContainSubstring("title"))
+		Expect(payload.Message).To(ContainSubstring("at least 3"))
+	})
+
+	It("rejects incident with description too short", func() {
+		requestBody := map[string]any{
+			"title":       "Valid title",
+			"description": "Short",
+			"reporter":    "sre",
+			"severity":    "HIGH",
+		}
+		reader, err := toJSONReader(requestBody)
+		Expect(err).NotTo(HaveOccurred())
+
+		response, body, err := runner.Do(http.MethodPost, "/api/v0/incidents/start", reader, map[string]string{
+			"Content-Type": "application/json",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("Validation failed"))
+		Expect(payload.Message).To(ContainSubstring("description"))
+		Expect(payload.Message).To(ContainSubstring("at least 10"))
+	})
+
+	It("rejects incident with invalid severity", func() {
+		requestBody := map[string]any{
+			"title":       "Valid title",
+			"description": "Valid description text here",
+			"reporter":    "sre",
+			"severity":    "INVALID",
+		}
+		reader, err := toJSONReader(requestBody)
+		Expect(err).NotTo(HaveOccurred())
+
+		response, body, err := runner.Do(http.MethodPost, "/api/v0/incidents/start", reader, map[string]string{
+			"Content-Type": "application/json",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("Validation failed"))
+		Expect(payload.Message).To(ContainSubstring("severity"))
+		Expect(payload.Message).To(ContainSubstring("must be one of"))
+	})
+
+	It("rejects incident with missing required fields", func() {
+		requestBody := map[string]any{
+			"title": "Valid title",
+		}
+		reader, err := toJSONReader(requestBody)
+		Expect(err).NotTo(HaveOccurred())
+
+		response, body, err := runner.Do(http.MethodPost, "/api/v0/incidents/start", reader, map[string]string{
+			"Content-Type": "application/json",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(response.StatusCode).To(Equal(http.StatusBadRequest))
+
+		var payload errorResponse
+		Expect(json.Unmarshal(body, &payload)).To(Succeed())
+		Expect(payload.Message).To(ContainSubstring("Validation failed"))
 	})
 })

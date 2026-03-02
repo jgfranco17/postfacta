@@ -19,7 +19,7 @@ jobs:
     name: Run unit tests
     runs-on: ubuntu-latest
     steps:
-      - name: Check repository
+      - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Set up workspace
@@ -33,7 +33,7 @@ jobs:
     name: Run integration tests
     runs-on: ubuntu-latest
     steps:
-      - name: Check repository
+      - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Set up workspace

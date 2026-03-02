@@ -54,3 +54,9 @@ func (r *HttpTestRunner) Do(method string, endpoint string, body io.Reader, head
 
 	return response, responseBody, nil
 }
+
+type errorResponse struct {
+	Message        string `json:"message"`
+	RequestID      string `json:"requestId,omitempty"`
+	ServiceVersion string `json:"serviceVersion,omitempty"`
+}

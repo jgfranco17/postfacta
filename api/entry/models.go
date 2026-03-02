@@ -43,12 +43,20 @@ type Incident struct {
 	EndTime         time.Time `json:"end_time,omitempty"`
 }
 
+// IncidentRequest represents the payload for creating a new incident.
+// All fields are validated to ensure data quality:
+//   - Title: required, 3-200 characters
+//   - Description: required, 10-2000 characters
+//   - Reporter: required, 2-100 characters
+//   - Severity: required, must be one of: LOW, MEDIUM, HIGH, CRITICAL
+//   - Owner: optional, max 100 characters
+//   - Notes: optional, array of initial notes
 type IncidentRequest struct {
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Reporter    string   `json:"reporter"`
-	Severity    Severity `json:"severity"`
-	Owner       string   `json:"owner,omitempty"`
+	Title       string   `json:"title" binding:"required,min=3,max=200"`
+	Description string   `json:"description" binding:"required,min=10,max=2000"`
+	Reporter    string   `json:"reporter" binding:"required,min=2,max=100"`
+	Severity    Severity `json:"severity" binding:"required,oneof=LOW MEDIUM HIGH CRITICAL"`
+	Owner       string   `json:"owner,omitempty" binding:"omitempty,max=100"`
 	Notes       []Note   `json:"notes,omitempty"`
 }
 

@@ -35,8 +35,3 @@ func getCodebaseSpec(content []byte) (*ProjectCodebase, error) {
 
 	return &data, nil
 }
-
-type BasicErrorInfo struct {
-	StatusCode int    `json:"statusCode"`
-	Message    string `json:"message"`
-}

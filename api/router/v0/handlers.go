@@ -7,6 +7,7 @@ import (
 	"github.com/jgfranco17/postfacta/api/db"
 	"github.com/jgfranco17/postfacta/api/entry"
 	"github.com/jgfranco17/postfacta/api/httperror"
+	"github.com/jgfranco17/postfacta/api/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,7 @@ func getAllIncidents(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	return func(c *gin.Context) error {
 		incidents, err := dbClient.GetAllIncidents(c)
 		if err != nil {
-			return httperror.New(c, http.StatusInternalServerError, "")
+			return httperror.New(c, http.StatusInternalServerError, "Failed to retrieve incidents: %w", err)
 		}
 		c.JSON(http.StatusOK, incidents)
 		return nil
@@ -30,16 +31,16 @@ type incidentStartResponse struct {
 func startIncident(dbClient db.DatabaseClient) func(c *gin.Context) error {
 	return func(c *gin.Context) error {
 		var requestBody entry.IncidentRequest
-		if err := c.ShouldBindJSON(&requestBody); err != nil {
-			return httperror.New(c, http.StatusBadRequest, "Invalid request body: %s", err.Error())
+		if err := validation.BindRequest(c, &requestBody); err != nil {
+			return err
 		}
 
 		incident := entry.New(requestBody)
 		if err := dbClient.StoreIncident(c, incident); err != nil {
 			if errors.Is(err, db.ErrConflict) {
-				return httperror.New(c, http.StatusConflict, "Incident with the same ID already exists")
+				return httperror.New(c, http.StatusConflict, "Incident with the same ID already exists: %w", err)
 			}
-			return httperror.New(c, http.StatusInternalServerError, "")
+			return httperror.New(c, http.StatusInternalServerError, "Failed to store incident: %w", err)
 		}
 
 		c.JSON(http.StatusCreated, incidentStartResponse{
