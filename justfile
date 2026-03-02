@@ -11,6 +11,19 @@ start port="8080":
 	@echo "Running main app..."
 	go run . --port {{ port }}
 
+# Run the application via Docker
+up:
+    #!/usr/bin/env bash
+    echo "Starting Docker environment..."
+    docker compose -f docker-compose.yaml up \
+        --build \
+        --detach
+
+# Stop and remove Docker containers
+down:
+    @echo "Stopping Docker environment..."
+    @docker compose -f docker-compose.yaml down --remove-orphans
+
 # Run unit tests
 test:
     #!/usr/bin/env bash
